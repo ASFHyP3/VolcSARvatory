@@ -1,0 +1,29 @@
+[build-system]
+requires = [
+    "setuptools>=61.0.0",
+    "wheel"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "volcsarvatory"
+version = "1.0.0"
+description = "VolcSARvatory"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {file = "LICENSE"}
+authors = [
+    {name = "ASF SciDev Team", email = "uaf-asf-scidev@alaska.edu"},
+]
+dependencies = [
+    "asf_search",
+    "geopandas",
+    "gdal",
+    "tqdm",
+    "opensarlab_lib",
+    "xarray",
+]
+
+[project.urls]
+documentation = "https://github.com/ASFHyP3/VolcSARvatory"
+repository = "https://github.com/ASFHyP3/VolcSARvatory"
