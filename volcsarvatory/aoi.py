@@ -18,11 +18,24 @@ land_gdf = gpd.GeoDataFrame(crs='epsg:4326', geometry=land_polygons_cartopy)
 s1_gdf = None
 
 def get_aoi():
+    """
+    Reads the parquet file with the areas of interest
+    """
     aoigdf = gpd.read_parquet(f"{PARQUET_DIR}/aoi_vol.parquet")
     aoigdf = aoigdf.to_crs("EPSG:4326")
     return aoigdf
 
 def add_aoi(id, extent):
+    """
+    Adds or replaces an area of interest in the parquet file.
+    
+    Args:
+        id: Id for the area of interest.
+        extent: List of lon/lat coordinates for the area of interest in the format [minlon, maxlon, minlat, maxlat].
+    
+    Returns:
+        intersection: Geopandas dataframe with the intersection between the area of interest and the land mask. 
+    """
     ullon, lrlon, lrlat, ullat = extent
     poly=Polygon([(ullon,ullat,0),(ullon,lrlat,0),(lrlon,lrlat,0),(lrlon,ullat,0)])
     new_aoi = {'name': [id], 'geometry': [poly]}
@@ -42,6 +55,9 @@ def add_aoi(id, extent):
     return intersection
 
 def load_s1_gdf():
+    """
+    Loads a parquet file with the burst ids and the extents.
+    """
     s3_url = "s3://its-live-data/autorift_parameters/v001/mission_frames_all.parquet"
     fs = fsspec.filesystem("s3", anon=True)
     gdf = gpd.read_parquet(s3_url, filesystem=fs)
@@ -49,6 +65,16 @@ def load_s1_gdf():
     s1_gdf = gdf[(gdf['mission']=='S1')]
 
 def get_burst_ids(aoi_id = None, aoi_file = None):
+    """
+    Get the burst ids that intersect the area of interest.
+    
+    Args:
+        aoi_id: Id for the area of interest. If None all the area of interest are taken.
+        aoi_file: Path to the parquet file. If None it takes the parquet file in cache.
+    
+    Returns:
+        result: Dictionary where the keys are the burst ids and the area of interests overlapping.
+    """
     load_s1_gdf()
     if aoi_file is None:
         aoi_file = f"{PARQUET_DIR}/aoi_vol.parquet"

@@ -4,6 +4,15 @@ from datetime import datetime
 from asf_search.exceptions import InvalidMultiBurstCountError, InvalidMultiBurstTopologyError
 
 def get_julian_season(season) -> tuple[int,int]:
+    """
+    Assigns a year to a season.
+    
+    Args:
+        season: Tuple with the initial and final month-day.
+    
+    Returns:
+        season_dates: Tuple with datetimes that represent the season.  
+    """
     season_start_ts = pd.Timestamp(
         datetime.strptime(f"{season[0]}-0001", "%m-%d-%Y"), tz="UTC"
         )
@@ -15,6 +24,15 @@ def get_julian_season(season) -> tuple[int,int]:
     return (season_start_day, season_end_day)
 
 def get_multibursts(burst_ids):
+    """
+    Get Multiburst objects from a list of burst ids.
+    
+    Args:
+        burst_ids: List with the burst IDs.
+    
+    Returns:
+        multibursts: List of Multiburst objects associated with the burst IDs.
+    """
     burst_ids = list(set(sorted(burst_ids)))
     path_dict = dict()
     for bid in burst_ids:
@@ -30,7 +48,16 @@ def get_multibursts(burst_ids):
 
     return multibursts
 
-def get_multibursts_path(burst_ids):    
+def get_multibursts_path(burst_ids):
+    """
+    Get Multiburst objects from a list of burst ids from one path.
+    
+    Args:
+        burst_ids: List with the burst IDs associated with a path.
+    
+    Returns:
+        multibursts: List of Multiburst objects associated with the burst IDs.
+    """
     multiburst_dict = dict()
     for bid in burst_ids:
         path = bid[0:3]
@@ -72,6 +99,15 @@ def get_multibursts_path(burst_ids):
     return multibursts
 
 def split_count(multiburst_dict):
+    """
+    Splits a multiburst set in case it is over 15 bursts.
+    
+    Args:
+        multiburst_dict: Dictionary where the keys are burst IDs and the elements are the swaths.
+    
+    Returns:
+        multiburst_dicts: List of the splitted dictionary.
+    """
     cont = 0
     multiburst_dicts = []
     multiburst_set = dict()
@@ -88,6 +124,15 @@ def split_count(multiburst_dict):
     return multiburst_dicts
 
 def split_multiburst(multiburst_dict):
+    """
+    Splits a multiburst horizontally or vertically and fill holes if it doesn't meet burst2safe standards.
+    
+    Args:
+        multiburst_dict: Dictionary where the keys are burst IDs and the elements are the swaths.
+    
+    Returns:
+        new_sets: List of the splitted dictionary.
+    """
     new_dicts = split_vertical_multiburst(multiburst_dict)
     new_sets = []
     for new_dict in new_dicts:
@@ -99,6 +144,15 @@ def split_multiburst(multiburst_dict):
     return new_sets
 
 def split_vertical_multiburst(multiburst_dict):
+    """
+    Splits a multiburst vertically if it finds a vertical gap in the set.
+    
+    Args:
+        multiburst_dict: Dictionary where the keys are burst IDs and the elements are the swaths.
+    
+    Returns:
+        new_sets: List of the splitted dictionary.
+    """
     ids = [bid for bid in sorted(multiburst_dict.keys())]
     id_sets=[]
     previous = 0
@@ -118,6 +172,15 @@ def split_vertical_multiburst(multiburst_dict):
     return new_sets
 
 def fill_holes(multiburst_dict):
+    """
+    Fills a multiburst set when a hole is found in the set.
+    
+    Args:
+        multiburst_dict: Dictionary where the keys are burst IDs and the elements are the swaths.
+    
+    Returns:
+        multiburst_dict: Dictionary with complemented set.
+    """
     for bid in multiburst_dict.keys():
         if "IW1" in multiburst_dict[bid] and "IW3" in multiburst_dict[bid] and not "IW2" in multiburst_dict[bid]:
             multiburst_dict[bid] = tuple(sorted(multiburst_dict[bid] + ("IW2",)))
@@ -138,6 +201,16 @@ def fill_holes(multiburst_dict):
 
 
 def get_ranges(multiburst_dict):
+    """
+    Finds the ranges for each swath in a multiburst set.
+    
+    Args:
+        multiburst_dict: Dictionary where the keys are burst IDs and the elements are the swaths.
+    
+    Returns:
+        ranges: Tuple with the initial and final burst.
+        ids: List of burst IDs in the multiburst set.
+    """
     ranges = dict()
     ids = dict()
     swaths = ["IW1","IW2","IW3"]
@@ -148,6 +221,15 @@ def get_ranges(multiburst_dict):
     return ranges, ids
 
 def complete_sides(multiburst_dict):
+    """
+    Adds bursts to a multiburst set in case the ranges between adjacent swaths is more than 1 and less than 3.
+    
+    Args:
+        multiburst_dict: Dictionary where the keys are burst IDs and the elements are the swaths.
+    
+    Returns:
+        multiburst_dicts: List of complemented multiburst sets.
+    """
     swaths = ["IW1","IW2","IW3"]
     for i in range(3):
         ranges, ids = get_ranges(multiburst_dict)
@@ -185,6 +267,15 @@ def complete_sides(multiburst_dict):
     return multiburst_dicts
 
 def split_horizontal_multiburst(multiburst_dict):
+    """
+    Splits a multiburst set horizontally in case the difference between adjacent ranges swaths is more than 1.
+    
+    Args:
+        multiburst_dict: Dictionary where the keys are burst IDs and the elements are the swaths.
+    
+    Returns:
+        multiburst_dicts: List with the splitted multiburst set.
+    """
     ranges, ids = get_ranges(multiburst_dict)
     
     if not "IW1" in ranges.keys() or not "IW2" in ranges.keys():

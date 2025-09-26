@@ -15,6 +15,17 @@ from tqdm.auto import tqdm
 from volcsarvatory import util
 
 def get_coherence(multiburst_dict, num = 1):
+    """
+    Estimates the mean coherence for random burst(s) pairs in a multiburst set.
+    
+    Args:
+        multiburst_dict: Dictionary where the keys are the burst ids and the elements the swaths.
+        num: Number of burst(s) to estimate the mean coherence.
+    
+    Returns:
+        coherence: Dictionary where the keys are the number of days between the pairs and the
+                   elements are dictionaries where the keys are the reference dates.
+    """
     coherence = dict()
     burst_ids = []
     for bid in multiburst_dict.keys():
@@ -40,6 +51,20 @@ def get_coherence(multiburst_dict, num = 1):
     return coherence
 
 def prepare_multiburst_jobs(refs, secs, project_name, hyp3, looks = '20x4', apply_water_mask = True):
+    """
+    Prepares the multiburst jobs from the pairs returned by an SBAS network.
+    
+    Args:
+        refs: Reference scene ids.
+        secs: Secondary scene ids.
+        hyp3: Instance of HyP3 where the user has been logged in.
+        project_name: Name of the project in HyP3.
+        looks: Multilooking in the final products.
+        apply_water_mask: If true it applies a water mask in the HyP3 processing.
+        
+    Returns:
+        insar_jobs: List with prepared jobs for HyP3
+    """
     insar_jobs = []
     bursts=[ref[0:13] for ref in refs]
     ubursts=list(set(bursts))
@@ -52,6 +77,16 @@ def prepare_multiburst_jobs(refs, secs, project_name, hyp3, looks = '20x4', appl
     return insar_jobs
 
 def submit_jobs(insar_jobs, hyp3):
+    """
+    Submits prepared multiburst jobs.
+    
+    Args:
+        insar_jobs: Prepared multiburst jobs.
+        hyp3: Instance of HyP3 where the user has been logged in.
+    
+    Returns:
+        jobs: List of submitted batches.
+    """
     batches = int(len(insar_jobs)/100)+1
     jobs = []
     for batch in range(batches):
@@ -63,7 +98,15 @@ def submit_jobs(insar_jobs, hyp3):
         jobs.append(hyp3.submit_prepared_jobs(insar_jobs[ini:fin]))
     return jobs
     
-def rename_pairs(project_name, hyp3, folder = None):
+def download_pairs(project_name, hyp3, folder = None):
+    """
+    Downloads HyP3 products and renames files to meet MintPy standards
+    
+    Args:
+        project_name: Name of the HyP3 project.
+        hyp3: Instance of HyP3 where the user has been logged in.
+        folder: Folder name that will contain the downloaded products. If None it will create a folder with the project name.
+    """
     jobs = hyp3.find_jobs(name=project_name)
 
     cwd = os.getcwd()
@@ -101,6 +144,13 @@ def rename_pairs(project_name, hyp3, folder = None):
     os.chdir(cwd)
     
 def set_same_frame(folder, wgs84 = False):
+    """
+    Checks the coordinate system for all the files in the folder and reprojects them if necessary
+    
+    Args:
+        folder: Path to the folder that has the HyP3 products.
+        wgs84: If True reprojects all the files to WGS84 system.
+    """
     data_path = Path(folder)
     dem = sorted(list(data_path.glob('*/*dem*.tif')))
     lv_phi = sorted(list(data_path.glob('*/*lv_phi*.tif')))
