@@ -31,7 +31,7 @@ This repository contains the recipe to process multiburst InSAR pairs for an SBA
    ```
 
 ## Usage
-The notebook [`VolcSARvatory`](https://github.com/ASFHyP3/VolcSARvatory/VolcSARvatory.ipynb) includes an example in Kilauea to submit an SBAS network in HyP3.
+The notebook [`VolcSARvatory`](https://github.com/ASFHyP3/VolcSARvatory/blob/main/VolcSARvatory.ipynb) includes an example in Kilauea to submit an SBAS network in HyP3.
 
 ### Credentials
 Depending on the mission being processed, some workflows will need you to provide credentials. Generally, credentials are provided via environment variables, but some may be provided by command-line arguments or via a `.netrc` file. 
