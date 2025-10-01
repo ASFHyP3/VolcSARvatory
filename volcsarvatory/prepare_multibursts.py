@@ -1,5 +1,6 @@
 import asf_search as asf
 import pandas as pd
+import time
 from datetime import datetime
 from asf_search.exceptions import InvalidMultiBurstCountError, InvalidMultiBurstTopologyError
 
@@ -69,7 +70,7 @@ def get_multibursts_path(burst_ids):
             multiburst_dict[id] = tuple(sorted(multiburst_dict[id] + (swath,)))
 
     try:
-        multiburst = asf.MultiBurst(multiburst_dict)
+        multiburst = get_multiburst(multiburst_dict)
         return [multiburst]
     except InvalidMultiBurstCountError:
         cont = 0
@@ -89,14 +90,32 @@ def get_multibursts_path(burst_ids):
     multibursts = []
     for multiburst_dict in multiburst_dicts:
         try:
-            multiburst = asf.MultiBurst(multiburst_dict)
+            multiburst = get_multiburst(multiburst_dict)
             multibursts.append(multiburst)
         except InvalidMultiBurstTopologyError:
             multibursts_sets = split_multiburst(multiburst_dict)
             for multiburst_dict in multibursts_sets:
-                multibursts.append(asf.MultiBurst(multiburst_dict))
+                multibursts.append(get_multiburst(multiburst_dict))
 
     return multibursts
+
+def get_multiburst(multiburst_dict):
+    try:
+        multiburst = asf.MultiBurst(multiburst_dict)
+    except InvalidMultiBurstTopologyError as e:
+        raise(e)
+    except InvalidMultiBurstCountError as e:
+        raise(e)
+    except ConnectionError:
+        time.sleep(5)
+        multiburst = asf.MultiBurst(multiburst_dict)
+    except ConnectionResetError:
+        time.sleep(5)
+        multiburst = asf.MultiBurst(multiburst_dict)
+    except OSError as e:
+        time.sleep(5)
+        multiburst = asf.MultiBurst(multiburst_dict)
+    return multiburst
 
 def split_count(multiburst_dict):
     """
