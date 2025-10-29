@@ -125,6 +125,9 @@ def download_pairs(project_name, hyp3, folder = None):
     folders=[fol for fol in folders if os.path.isdir(fol)]
 
     for fol in folders:
+        new = True
+        if str(fol).count('_') > 7:
+            new = False
         os.chdir(fol)
         fs=glob.glob('./*')
         txts=[t for t in fs if '.txt' in t and 'README' not in t]
@@ -134,7 +137,10 @@ def download_pairs(project_name, hyp3, folder = None):
         burst=lines[0].split('_')[1]+'_'+lines[0].split('_')[2]
         for f in fs:
             name=os.path.basename(f)
-            newname='S1_'+burst+'_'+'_'.join([n for n in name.split('_')[10::]])
+            if new:
+                newname = 'S1_' + burst + '_' + '_'.join([n for n in name.split('_')[3:]])
+            else:
+                newname = 'S1_' + burst + '_' + '_'.join([n for n in name.split('_')[10:]])
             if '.txt' in newname and 'README' not in newname:
                 foldername=newname.split('.')[0]
             subprocess.call('mv '+name+' '+newname,shell=True)
