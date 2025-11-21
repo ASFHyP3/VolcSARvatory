@@ -16,12 +16,23 @@ authors = [
     {name = "ASF SciDev Team", email = "uaf-asf-scidev@alaska.edu"},
 ]
 dependencies = [
-    "asf_search",
+    "asf_search @ git+https://github.com/mfangaritav/Discovery-asf_search.git#egg=asf_search[sbas]",
+    "cartopy",
     "geopandas",
     "gdal",
-    "tqdm",
+    "hyp3_sdk",
+    "jupyterlab",
+    "mintpy @ git+https://github.com/insarlab/MintPy.git@4bbca8c",
+    "networkx",
+    "numpy",
     "opensarlab_lib",
-    "xarray",
+    "pandas",
+    "plotly",
+    "pyarrow",
+    "pygmt",
+    "pyproj",
+    "rasterio",
+    "shapely",
 ]
 
 [project.urls]

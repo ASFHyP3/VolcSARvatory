@@ -9,25 +9,15 @@ This repository contains the recipe to process multiburst InSAR pairs for an SBA
    ```bash
    git clone https://github.com/ASFHyP3/VolcSARvatory.git
    ```
-3. Clone a modified version of `asf-search`.
+3. setup the development environment
    ```bash
-   git clone https://github.com/mfangaritav/Discovery-asf_search.git
+    cd VolcSARvatory
+    conda env create -f environment.yaml
    ```
-4. setup the development environment
-   ```bash
-    conda env create -f VolcSARvatory/environment.yaml
-   ```
-5. Activate `volcsarvatory` environment:
+4. Activate `volcsarvatory` environment and install the package:
    ```bash
    conda activate volcsarvatory
-   ```
-6. Install the modified version of `asf-search`:
-   ```bash
-   python -m pip install -e Discovery-asf_search/
-   ```
-7. Install `volcsarvatory`:
-   ```bash
-   python -m pip install -e VolcSARvatory/
+   python -m pip install -e .
    ```
 
 ## Usage

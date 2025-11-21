@@ -77,7 +77,7 @@ def get_multibursts_path(burst_ids):
         multiburst_dicts = []
         multiburst_set = dict()
         for bid in sorted(multiburst_dict.keys()):
-            if (cont + len(multiburst_dict[bid])) > 15:
+            if (cont + len(multiburst_dict[bid])) > 30:
                 multiburst_dicts.append(multiburst_set)
                 multiburst_set = dict()
                 cont = 0
@@ -119,7 +119,7 @@ def get_multiburst(multiburst_dict):
 
 def split_count(multiburst_dict):
     """
-    Splits a multiburst set in case it is over 15 bursts.
+    Splits a multiburst set in case it is over 30 bursts.
     
     Args:
         multiburst_dict: Dictionary where the keys are burst IDs and the elements are the swaths.
@@ -131,7 +131,7 @@ def split_count(multiburst_dict):
     multiburst_dicts = []
     multiburst_set = dict()
     for bid in sorted(multiburst_dict.keys()):
-        if (cont + len(multiburst_dict[bid])) > 15:
+        if (cont + len(multiburst_dict[bid])) > 30:
             multiburst_dicts.append(multiburst_set)
             multiburst_set = dict()
             cont = 0

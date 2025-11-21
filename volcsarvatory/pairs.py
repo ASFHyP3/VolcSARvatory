@@ -32,22 +32,23 @@ def get_coherence(multiburst_dict, num = 1):
         for swath in multiburst_dict[bid]:
             burst_ids.append(bid+'_'+swath)
 
-    bids = [burst_ids[random.randint(0,len(burst_ids)-1)] for i in range(num)]
+    bids = random.sample(burst_ids,num)
+
     for bid in bids:
         prods = asf.search(fullBurstID = bid, start = '2019-12-01', end = '2021-02-01', polarization = asf.POLARIZATION.VV)[::-1]
         for i, ref in enumerate(prods[0:-1]):
             for sec in prods[i+1::]:
                 pair = asf.Pair(ref, sec)
-                if pair.temporal.days in [6,12,18,24,36,48]:
+                if pair.temporal_baseline.days in [6,12,18,24,36,48]:
                     ref_date = ref.properties["stopTime"].split('T')[0]
                     sec_date = sec.properties["stopTime"].split('T')[0]
-                    if pair.temporal.days not in coherence.keys():
-                        coherence[pair.temporal.days] = dict()
+                    if pair.temporal_baseline.days not in coherence.keys():
+                        coherence[pair.temporal_baseline.days] = dict()
                     else:
-                        if ref_date in coherence[pair.temporal.days].keys():
-                            coherence[pair.temporal.days][ref_date] += pair.estimate_s1_mean_coherence()/num
+                        if ref_date in coherence[pair.temporal_baseline.days].keys():
+                            coherence[pair.temporal_baseline.days][ref_date] += pair.estimate_s1_mean_coherence()/num
                         else:
-                            coherence[pair.temporal.days][ref_date] = pair.estimate_s1_mean_coherence()/num
+                            coherence[pair.temporal_baseline.days][ref_date] = pair.estimate_s1_mean_coherence()/num
     return coherence
 
 def prepare_multiburst_jobs(refs, secs, project_name, hyp3, looks = '20x4', apply_water_mask = True):
