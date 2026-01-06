@@ -27,6 +27,6 @@ The notebook [`VolcSARvatory`](https://github.com/ASFHyP3/VolcSARvatory/blob/mai
 Depending on the mission being processed, some workflows will need you to provide credentials. Generally, credentials are provided via environment variables, but some may be provided by command-line arguments or via a `.netrc` file. 
 
 ## Code of conduct
-We strive to create a welcoming and inclusive community for all contributors to HyP3 autoRIFT. As such, all contributors to this project are expected to adhere to our code of conduct.
+We strive to create a welcoming and inclusive community for all contributors to VolcSARvatory. As such, all contributors to this project are expected to adhere to our code of conduct.
 
 Please see our [`CODE_OF_CONDUCT.md`](https://github.com/ASFHyP3/.github/blob/main/CODE_OF_CONDUCT.md) for the full code of conduct text.
