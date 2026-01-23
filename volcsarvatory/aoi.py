@@ -9,7 +9,7 @@ import warnings
 from pathlib import Path
 from shapely.geometry import Polygon
 
-PARQUET_DIR = Path(__file__).parent / 'parquets'
+PARQUET_DIR = Path(__file__).parent / 'data'
 
 land_50m = cfeature.NaturalEarthFeature('physical','land','10m')
 land_polygons_cartopy = list(land_50m.geometries())
@@ -38,21 +38,25 @@ def add_aoi(id, extent):
     """
     ullon, lrlon, lrlat, ullat = extent
     poly=Polygon([(ullon,ullat,0),(ullon,lrlat,0),(lrlon,lrlat,0),(lrlon,ullat,0)])
-    new_aoi = {'name': [id], 'geometry': [poly]}
+    new_aoi = {'name': [id], 'geometry': [poly], 'bbox': ",".join((str(item) for item in extent)), 'mb_ids': [[]]}
     new_aoi = gpd.GeoDataFrame(new_aoi, crs="EPSG:4326")
     if os.path.exists(f"{PARQUET_DIR}/aoi_vol.parquet"):
         aoi_gdf = gpd.read_parquet(f"{PARQUET_DIR}/aoi_vol.parquet")
         if len(aoi_gdf[aoi_gdf['name'] == id]) > 0:
-            warnings.warn('An AOI with the same ID exists in the dataframe. Replacing...', UserWarning)
-            aoi_gdf[aoi_gdf['name'] == id]['geometry'] = poly
-        else:
-            aoi_gdf = pd.concat([aoi_gdf, new_aoi], ignore_index=True)
+            if len(aoi_gdf[(aoi_gdf['name'] == id) & (aoi_gdf['bbox'] == ",".join((str(item) for item in extent)))]) > 0:
+                return False
+            else:
+                warnings.warn('An AOI with the same ID exists in the dataframe. Replacing...', UserWarning)
+                aoi_gdf = aoi_gdf[aoi_gdf['name'] != id]
+        aoi_gdf = pd.concat([aoi_gdf, new_aoi], ignore_index=True)
     else:
         aoi_gdf = new_aoi
+    print('aoi_gdf',aoi_gdf)
     intersection = gpd.overlay(aoi_gdf, land_gdf, how='intersection')
+    print('intersection',intersection)
     intersection.to_parquet(f"{PARQUET_DIR}/aoi_vol.parquet")
 
-    return intersection
+    return True
 
 def load_s1_gdf():
     """
@@ -79,8 +83,18 @@ def get_burst_ids(aoi_id = None, aoi_file = None):
     if aoi_file is None:
         aoi_file = f"{PARQUET_DIR}/aoi_vol.parquet"
     aoi_gdf = gpd.read_parquet(aoi_file)
+    if aoi_id is not None:
+        aoi_gdf = aoi_gdf[aoi_gdf["name"] == aoi_id]
     bursts_gdf = gpd.sjoin(s1_gdf, aoi_gdf, how='inner', predicate='intersects')
-    bursts_gdf["area"] = gpd.overlay(s1_gdf, aoi_gdf, how='intersection').area.to_numpy()/bursts_gdf.area.to_numpy()
+    intersection = gpd.overlay(s1_gdf, aoi_gdf, how='intersection')
+
+    utmgdf = aoi_gdf.estimate_utm_crs()
+    crs = utmgdf._crs.to_epsg()
+    bursts_utm = bursts_gdf.to_crs(epsg=crs)
+    intersection_utm = intersection.to_crs(epsg=crs)
+
+    bursts_gdf["area"] = intersection_utm.area.to_numpy()/bursts_utm.area.to_numpy()
+    bursts_gdf = bursts_gdf[bursts_gdf["area"] > 0.05]
     result = dict()
     for bid in bursts_gdf["id"].unique():
         asf_res=asf.search(fullBurstID=bid)
@@ -91,10 +105,9 @@ def get_burst_ids(aoi_id = None, aoi_file = None):
             if asf_res[0].properties['stopTime'] is not None:
                 cond=True
         if cond:
-            if bursts_gdf[bursts_gdf["id"]==bid]["area"].to_numpy()[0] > 0.05:
-                if aoi_id is None:
+            if aoi_id is None:
+                result[bid]=bursts_gdf[bursts_gdf["id"]==bid]["name"].unique()
+            else:
+                if aoi_id in bursts_gdf[bursts_gdf["id"]==bid]["name"].unique():
                     result[bid]=bursts_gdf[bursts_gdf["id"]==bid]["name"].unique()
-                else:
-                    if aoi_id in bursts_gdf[bursts_gdf["id"]==bid]["name"].unique():
-                        result[bid]=bursts_gdf[bursts_gdf["id"]==bid]["name"].unique()
     return result
